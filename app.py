@@ -27,20 +27,16 @@ if st.session_state.movimientos:
     st.write("### Tus movimientos:")
     st.table(df)
 
-    # Botón para descargar a Excel/CSV
+    # Botón de descarga
     csv = df.to_csv(index=False).encode('utf-8')
-    st.download_button(
-        label="Descargar movimientos a Excel (CSV)",
-        data=csv,
-        file_name='mis_consumos_tdc.csv',
-        mime='text/csv',
-    )
+    st.download_button("Descargar movimientos a Excel (CSV)", csv, "mis_consumos_tdc.csv", "text/csv")
 
     # Cálculos
     total_bs = df["Monto Bs"].sum()
     total_usd = df["Monto USD"].sum()
-    interes_total = total_bs * 0.60 * (6/12)
-    cuota_mensual = (total_bs + interes_total) / 6
+    interes_mensual = (total_bs * 0.60) / 12
+    pago_minimo_est = total_bs * 0.15 
+    cuota_mensual = (total_bs + (total_bs * 0.60 * (6/12))) / 6
     
     st.subheader("Resumen Financiero")
     c1, c2, c3 = st.columns(3)
@@ -48,21 +44,13 @@ if st.session_state.movimientos:
     c2.metric("Total Deuda (USD)", f"{total_usd:,.2f}")
     c3.metric("Cuota Mensual (6 meses)", f"{cuota_mensual:,.2f}")
     
+    # Sugerencia inteligente
+    st.subheader("💡 Sugerencia Financiera")
+    if interes_mensual > (pago_minimo_est * 0.2):
+        st.warning("⚠️ **Recomendación:** Pagar el total es altamente sugerido para evitar el impacto acumulado del 60% anual en intereses.")
+    else:
+        st.info("ℹ️ **Nota:** Si tienes liquidez, pagar el total siempre será más eficiente para tu bolsillo.")
+
     if st.button("Limpiar todo"):
         st.session_state.movimientos = []
         st.rerun()
-        import streamlit as st
-import pandas as pd
-
-# [Resto del código igual...]
-
-    # Lógica de sugerencia
-    st.subheader("💡 Sugerencia Financiera")
-    if total_bs > 0:
-        # Si el interés mensual es muy alto comparado con el pago mínimo, se recomienda pagar total
-        if interes_mensual > (pago_minimo_est * 0.2):
-            st.warning("⚠️ **Recomendación:** Pagar el total es altamente sugerido para evitar el impacto acumulado del 60% anual en intereses.")
-        else:
-            st.info("ℹ️ **Nota:** Si tienes liquidez, pagar el total siempre será más eficiente para tu bolsillo.")
-    
-    # ...[Fin del código]
